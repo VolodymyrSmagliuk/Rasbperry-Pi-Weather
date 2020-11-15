@@ -20,9 +20,9 @@ def get_weather(my_lat, my_lon):
     return my_weather # return metrics
 
 def bs(message): # beautiful separate
-    print("------------------------------------------")
+    print("------------------------------------------------------")
     print(" "+message)
-    print("------------------------------------------")
+    print("------------------------------------------------------")
 
 def isReal(check):
     try:
@@ -32,57 +32,103 @@ def isReal(check):
     except ValueError:
         return False
 
+size_layer_2=(14,1)
+size_layer_3=(13,2)
+size_layer_1=(10,2)
+
+size_progress_bar=(30,10)
+size_layer_5=(10,1)
+size_output=(88, 10)
+
 layout = [
-    [sg.Text('Latitude: '), sg.InputText('',key='lat', size=(14,1))],
-    [sg.Text('Longitude: '), sg.InputText('',key='lon', size=(14,1))],
-    [sg.Output(size=(88, 20))],
-    [sg.Text('Air Pressure'), sg.InputText('',key='air_pressure',size=(14,1))],
-    [sg.Text('Air Quality'), sg.InputText('',key='air_quality',size=(14,1))],
-    [sg.Text('Ambient temperature'), sg.InputText('',key='ambient_temp',size=(14,1))],
-    [sg.Text('Ground temperature'), sg.InputText('',key='grount_temp',size=(14,1))],
-    [sg.Text('Humidity'), sg.InputText('',key='humidity',size=(14,1))],
-    [sg.Text('Rainfall'), sg.InputText('',key='rainfall',size=(14,1))],
-    [sg.Text('Wind direction'), sg.InputText('',key='wind_direction',size=(14,1))],
-    [sg.Text('Wind gust speed'), sg.InputText('',key='wind_gust_speed',size=(14,1))],
-    [sg.Text('Wind speed'), sg.InputText('',key='wind_speed',size=(14,1))],
+    [
+        sg.Text('Latitude: ', size=size_layer_5),
+        sg.InputText('',key='lat', size=size_layer_2)
+        ],
+    [
+        sg.Text('Longitude: ', size=size_layer_5),
+        sg.InputText('',key='lon', size=size_layer_2)
+        ],
+    [
+        sg.Text('Progress: ', size=size_layer_5),
+        sg.ProgressBar(6, orientation='h', size=size_progress_bar, key='progressbar')
+        ],
+    [
+        sg.Output(size=size_output)],
+    [
+        sg.Text('Air Pressure', size=size_layer_3),
+        sg.InputText('',key='air_pressure', size=size_layer_1),
+        sg.Text('Air Quality', size=size_layer_3),
+        sg.InputText('',key='air_quality',size=size_layer_1)
+        ],
+    [
+        sg.Text('Ambient temperature', size=size_layer_3),
+        sg.InputText('',key='ambient_temp',size=size_layer_1),
+        sg.Text('Ground temperature', size=size_layer_3),
+        sg.InputText('',key='ground_temp',size=size_layer_1)
+        ],
+    [
+        sg.Text('Humidity', size=size_layer_3),
+        sg.InputText('',key='humidity',size=size_layer_1),
+        sg.Text('Rainfall', size=size_layer_3),
+        sg.InputText('',key='rainfall',size=size_layer_1)
+        ],
+    [
+        sg.Text('Wind direction', size=size_layer_3),
+        sg.InputText('',key='wind_direction',size=size_layer_1),
+        sg.Text('Wind gust speed', size=size_layer_3),
+        sg.InputText('',key='wind_gust_speed',size=size_layer_1),
+        sg.Text('Wind speed', size=size_layer_3),
+        sg.InputText('',key='wind_speed',size=size_layer_1)
+        ],
     [sg.Submit(), sg.Cancel()]
 ]
 
-window = sg.Window('Local weather search', layout)
+window = sg.Window('Local Weather Searcher', layout)
 
 while True:                             # The Event Loop
     event, values = window.read()
     if event in (None, 'Exit', 'Cancel'):
         break
     if event == 'Submit':
-        if isReal(values['lat']) and isReal(values['lon']):
+        # Check latitude is valid
+        if not isReal(values['lat']):
+            sg.Popup("Please enter latitude. Latitude should be a number")
+        elif float(values['lat']) > 86 or float(values['lat']) < -86:
+            sg.Popup("Latitude is invalid. Please enter a number from -85 to 85, e.g. 50.12")
+        # Check longitude is valid
+        elif not isReal(values['lon']):
+            sg.Popup("Please enter longitude. Longitude should be a number")
+        elif float(values['lon']) > 181 or float(values['lon']) < -181:
+            sg.Popup("Longitude is invalid. Please enter a number from -180 to 180, e.g. -25.12")
+        # Check both is valid = main function
+        elif isReal(values['lat']) and isReal(values['lon']):
+            progress_bar = window.FindElement('progressbar')
+            progress_count = 1
+            progress_bar.UpdateBar(progress_count+1)
+            
             bs("Searching the closest station...")
+            progress_bar.UpdateBar(progress_count+1)
             my_weather=get_weather(float(values['lat']), float(values['lon'])) 
-            bs("Information about weather:")
+            bs("Full Information about weather:")
+            progress_bar.UpdateBar(progress_count+1)
             
             # -----------------------
             # Output all paramethers
             # -----------------------
             weather = my_weather[0] 
             keys = list(weather.keys())
-            print(keys)
             
             for key in keys:
                 values[key] = weather[key]
                 if key in window.AllKeysDict:
                     window.FindElement(key).Update(values[key])
                     
-            
-            # Full output
             print(json.dumps(my_weather[0], indent=4, sort_keys=True))
-        elif not isReal(values['lat']):
-            sg.Popup("Latitude is invalid. Please enter a number, e.g. 24.12")
-        elif values['lat'] is None:
-            sg.Popup("Please enter latitude")
-        elif not isReal(values['lon']):
-            sg.Popup("Longitude is invalid. Please enter a number, e.g. -12.12")
-        elif values['lon'] is None:
-            sg.Popup("Please enter longitude")
+            sg.PopupOK('Finish')
+            progress_bar.UpdateBar(6)
+
+      
     else:
         sg.Popup("Please enter latitude and longitude")
 
