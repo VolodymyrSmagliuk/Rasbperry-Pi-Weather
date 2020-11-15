@@ -125,8 +125,8 @@ while True:                             # The Event Loop
                     window.FindElement(key).Update(values[key])
                     
             print(json.dumps(my_weather[0], indent=4, sort_keys=True))
-            sg.PopupOK('Finish')
             progress_bar.UpdateBar(6)
+            sg.PopupOK('Finish')
 
       
     else:
